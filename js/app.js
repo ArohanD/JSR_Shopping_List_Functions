@@ -1,5 +1,12 @@
 (function() { // protect the lemmings!
 
+	// Helper functions:
+
+	// Verify that object is item
+	function vItem(item) {
+    	return (item.hasOwnProperty("item") && item.hasOwnProperty("price"))
+	}
+
 	/* 1
 		@function newShoppingListItem
 		@param item {string}
@@ -24,12 +31,42 @@
 
 	// implement function here
 
+	function newShoppingListItem(str, n) {
+		if (typeof str != "string" && typeof n != "number"){
+			return "ERROR: Invalid Parameters"
+		}
+
+		if (str.length > 10){
+			return "ERROR: Item name is too long"
+		}
+
+		if (n >= 100 && n < 0){
+			return "ERROR: Ivalid Price"
+		}
+
+		let fn = Math.round(n * 1e2) / 1e2;
+
+		let retObj = {
+			'item': str,
+			'price': fn,
+		}
+
+		return retObj;
+
+	}
+
 	// TEST
 	describe('1. newShoppingListItem', () => {
 		it('should return an object with item and price attributes', () => {
 			const shoppingListItem = newShoppingListItem('test', 1)
 			chai.assert.equal(shoppingListItem.item, 'test');
 			chai.assert.equal(shoppingListItem.price, 1);
+		});
+
+		it('should round the price to two decimal places', () => {
+			const shoppingListItem = newShoppingListItem('test', 3.141592)
+			chai.assert.equal(shoppingListItem.item, 'test');
+			chai.assert.equal(shoppingListItem.price, 3.14);
 		});
 	});
 
@@ -53,6 +90,21 @@
 	*/
 
 	// implement function here
+
+	function addToShoppingList(objItem, arr) {
+		if (!vItem(objItem)){
+		    return "Error, Object you are trying to add is not an item"
+		}
+		
+		if (typeof arr == "undefined" || typeof arr !== "object"){
+		   	let list = [];
+		    list.push(objItem);
+		    return list; 
+		} else {
+		    arr.push(objItem);
+		    return arr;
+		}
+	}
 
 	// TEST
 	describe('2. addToShoppingList', () => {
@@ -86,6 +138,24 @@
 	*/
 
 	// implement function here
+
+	function removeFromShoppingList(arr) {
+		arr.pop();
+		return arr;
+	}
+
+
+	//with loop instead:
+	function removeFromShoppingList2(arr) {
+		let ret = [];
+		for (var i = 0; i < arr.length-1; i++){
+			ret[i] = arr[i];
+		}
+		console.log(ret.length);
+		console.log(ret[0].item)
+		console.log(ret[0].price)
+		return ret;
+	}
 
 	// TEST
 	describe('3. removeFromShoppingList', () => {
@@ -121,9 +191,23 @@
 
 	// implement function here
 
+	function removeFirstItem(arr){
+		arr.shift();
+		return arr;
+	}
+
+	//with loop:
+	function removeFirstItem2(arr){
+		let ret = [];
+		for (var i = 1; i < arr.length; i++){
+			ret[i-1] = arr[i];
+		}
+		return ret;
+	}
+
 	// TEST
 	describe('4. removeFirstItem', () => {
-		it('should remove from the end of the list', () => {
+		it('should remove from the beginning of the list', () => {
 			let list = addToShoppingList({
 				'item': 'test',
 				'price': 1
@@ -158,6 +242,33 @@
 	*/
 
 	// implement function here
+
+	function removeNthItem(n, arr) {
+		if (n < 0 || n >= arr.length || typeof n != "number") {
+			return error;
+		}
+
+		arr.splice(n,1);
+		return arr
+	}
+
+	//With loops:
+	function removeNthItem2(n, arr) {
+		if (n < 0 || n >= arr.length || typeof n != "number") {
+			return error;
+		}
+
+		let ret = [];
+		for (var i = 0; i < n; i++) {
+			ret[i] = arr[i];
+		}
+
+		for (var j = n; j < arr.length-1; j++){
+			ret[j] = arr[j+1];
+		}
+
+		return ret;
+	}
 
 	// TEST
 	describe('5. removeNthItem', () => {
@@ -228,6 +339,14 @@
 	*/
 
 	// implement function here
+
+	function removeNItems(ind, num, arr){
+		if (ind < 0 || typeof num != "number" || typeof ind != "number" || ind + num > arr.length) {
+			return error;
+		}
+
+		return arr.slice(0, ind+num-1);
+	}
 
 	// TEST
 	describe('6. removeNItems', () => {
@@ -308,6 +427,22 @@
 
 	// implement function here
 
+	function smartRemoveItems(num, arr){
+		if (num === 0 || num > arr.length) {
+			return arr;
+		} else if (num < 0) {
+			for (var i = num; i != 0; i++) {
+				removeFromShoppingList(arr);
+			}
+			return arr;
+		} else if (num > 0) {
+			for (var i = 0; i < num; i++){
+				removeFirstItem(arr)
+			}
+			return arr;
+		}
+	}
+
 	// TEST
 	describe('7. smartRemoveItems', () => {
 		it('should return list if i > length of list', () => {
@@ -386,6 +521,24 @@
 
 	// implement function here
 
+	function spliceItem(obj, ind, arr){
+		if(!vItem(obj)){
+			return error;
+		}
+
+		if (ind <= 0) {
+			arr.unshift(obj);
+			return arr;
+		} else if (ind >= arr.length) {
+			arr.push(obj);
+			return arr;
+		} else {
+			arr.splice(ind, 0, obj);
+			return arr;
+		}
+
+	}
+
 	// TEST
 	describe('8. spliceItem', () => {
 		it('should throw an error if item is not valid', () => {
@@ -402,6 +555,39 @@
 
 			chai.assert.equal(list[0].item, 'test')
 			chai.assert.equal(list[0].price, 1)
+		});
+
+		//you need more than the above to test because in the above you're 
+		//adding to both the front and 0 index. Here is a rewrite:
+
+		it('should really insert item to the ith index of the list', () => {
+			let feeder = addToShoppingList({
+				'item': 'test',
+				'price': 1
+			});
+
+			feeder = addToShoppingList({
+				'item': 'test2',
+				'price': 2
+			}, feeder);
+
+			feeder = addToShoppingList({
+				'item': 'test3',
+				'price': 3
+			}, feeder);
+
+			feeder = addToShoppingList({
+				'item': 'test4',
+				'price': 4
+			}, feeder);
+
+			const list = spliceItem({
+				'item': 'testIND',
+				'price': 16,
+			}, 2, feeder)
+
+			chai.assert.equal(list[2].item, 'testIND')
+			chai.assert.equal(list[2].price, 16)
 		});
 
 		it('should append to the end if i > length of list', () => {
@@ -452,6 +638,30 @@
 	*/
 
 	// implement function here
+
+	function spliceItems(arrAdd, ind, arr){
+		for (var i = 0; i < arrAdd.length; i++){
+			if(!vItem(arrAdd[i])){
+				return error;
+			}
+		}
+
+		if (arrAdd.length === 0) {
+			return arr;
+		}
+
+		if (ind < 0) {
+			return arrAdd.concat(arr);
+		} else if (ind > 0){
+			return arr.concat(arrAdd);
+		}
+
+		let ret = arr;
+		for (i = 0; i < arrAdd.length; i++){
+			ret = spliceItem(arrAdd[arrAdd.length-1-i], ind, ret);
+		}
+		return ret;
+	}
 
 	// TEST
 	describe('9. spliceItems', () => {
@@ -533,6 +743,18 @@
 
 	// implement function here
 
+	function combineLists(list1, list2) {
+		let ret = list1.concat(list2);
+
+		for(var i = 0; i < ret.length; i++){
+			if(!vItem(ret[i])){
+				return error;
+			}
+		}
+
+		return ret;
+	}
+
 	// TEST
 	describe('10. combineLists', () => {
 		it('should throw an error if item is not valid', () => {
@@ -584,6 +806,20 @@
 	*/
 
 	// implement function here
+
+	function splitListAt(ind, arr){
+		let ret = [];
+
+		if (ind < 0){
+			return [arr,[]];
+		} else if (ind > arr.length){
+			return [[],arr];
+		}
+
+		ret.push(arr.slice(0, ind+1));
+		ret.push(arr.slice(ind+1));
+		return ret;
+	}
 
 	// TEST
 	describe('11. splitListAt', () => {
@@ -665,6 +901,10 @@
 
 	// implement function here
 
+	function canExpressCheckout(arr){
+		return (arr.length < 10);
+	}
+
 	// TEST
 	describe('12. canExpressCheckout', () => {
 		it('should return true if num items < 10', () => {
@@ -692,6 +932,16 @@
 	*/
 
 	// implement function here
+
+	function computeSum(arr){
+		let ret = 0;
+
+		for (var i = 0; i < arr.length; i++){
+			ret = ret + arr[i].price;
+		}
+
+		return ret;
+	}
 
 	// TEST
 	describe('13. computeSum', () => {
@@ -726,6 +976,10 @@
 	*/
 
 	// implement function here
+
+	function computeSumWithTax(arr, tax){
+		return computeSum(arr) * (1+tax/100);
+	}
 
 	// TEST
 	describe('14. computeSumWithTax', () => {
@@ -762,6 +1016,14 @@
 	*/
 
 	// implement function here
+
+	function computeSumInRange(ind1, ind2, arr){
+		if (ind1 > ind2 || ind1 < 0 || ind1 > arr.length || ind2 < 0 || ind2> arr.length){
+			return error;
+		}
+		let ret =  computeSum(splitListAt(ind1-1, arr)[1]) - computeSum(splitListAt(ind2, arr)[1]);
+		return ret;
+	}
 
 	// TEST
 	describe('15. computeSumInRange', () => {
@@ -804,6 +1066,17 @@
 			]);
 
 			chai.assert.equal(sum, 9)
+		})
+
+		it('should sum all the price items FROM start index `i` and end index `j` and return value', () => {
+			const sum =  computeSumInRange(1, 3, [
+				newShoppingListItem('test', 2),
+				newShoppingListItem('test2', 18),
+				newShoppingListItem('test3', 7),
+				newShoppingListItem('test4', 9)
+			]);
+
+			chai.assert.equal(sum, 34)
 		})
 	});
 
